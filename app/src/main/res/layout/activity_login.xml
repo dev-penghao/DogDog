@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <EditText
+        android:id="@+id/user_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="账号"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/user_password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="密码"
+        android:inputType="textPassword"/>
+
+    <CheckBox
+        android:id="@+id/login_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="记住密码"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/sign_up"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="注册"
+            android:textColor="@color/theme_blue"
+            android:background="@drawable/sign_up_button_background"
+            android:layout_marginRight="40dp"/>
+
+        <Button
+            android:id="@+id/sign_in"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="登录"
+            android:textColor="@color/white"
+            android:background="@drawable/sign_in_button_background"/>
+
+    </LinearLayout>
+
+</LinearLayout>

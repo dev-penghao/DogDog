@@ -2,11 +2,25 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/view2">
+    android:id="@+id/view2"
+    android:orientation="vertical">
 
-    <TextView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="界面2"/>
+    <Button
+        android:id="@+id/view2_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="刷新" />
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/view2_swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/view2_contacts_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </LinearLayout>
