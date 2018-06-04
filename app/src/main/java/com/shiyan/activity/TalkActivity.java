@@ -23,6 +23,8 @@ import com.shiyan.dogdog.R;
 import com.shiyan.nets.GlobalSocket;
 import com.shiyan.nets.NetMessage;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,13 @@ public class TalkActivity extends AppCompatActivity{
         button.setOnClickListener(v -> {
             String message=editText.getText().toString();
             new Thread(() -> {
-                GlobalSocket.ps.println(talkObj+"/"+message);
+                try {
+                    GlobalSocket.ps=new PrintStream(GlobalSocket.socket.getOutputStream());
+                    GlobalSocket.ps.print(talkObj+"/"+message);
+                    GlobalSocket.ps.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }).start();
             list.add(new NetMessage(1,editText.getText().toString(),talkObj));
             myAdapter.notifyItemInserted(list.size()-1);

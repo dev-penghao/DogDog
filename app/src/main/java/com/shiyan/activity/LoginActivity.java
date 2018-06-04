@@ -2,11 +2,13 @@ package com.shiyan.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -26,6 +28,8 @@ public class LoginActivity extends AppCompatActivity {
 
     Button sign_up,sign_in;
     EditText num,password;
+    CheckBox checkBox;
+
     @SuppressLint("HandlerLeak")
     Handler handler=new Handler(){
         @Override
@@ -50,11 +54,16 @@ public class LoginActivity extends AppCompatActivity {
         sign_in=findViewById(R.id.sign_in);
         num=findViewById(R.id.user_num);
         password=findViewById(R.id.user_password);
+        checkBox=findViewById(R.id.login_checkbox);
+
+        SharedPreferences preferences=getPreferences(MODE_PRIVATE);
+        num.setText(preferences.getString("num",""));
+        password.setText(preferences.getString("password",""));
 
         sign_in.setOnClickListener(v -> new Thread(() -> {
             String result = "";
             try {
-                GlobalSocket.socket=new Socket(GlobalSocket.SERVER_HOST0,38380);
+                GlobalSocket.socket=new Socket(GlobalSocket.SERVER_HOST,38380);
                 GlobalSocket.ps=new PrintStream(GlobalSocket.socket.getOutputStream());
                 GlobalSocket.br=new BufferedReader(new InputStreamReader(GlobalSocket.socket.getInputStream()));
                 String request="sign_in/"+num.getText().toString()+"/"+password.getText().toString()+"/";
@@ -74,6 +83,16 @@ public class LoginActivity extends AppCompatActivity {
             Me.name=result;
             Me.num=num.getText().toString();
         }).start());
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (checkBox.isChecked()){
+            @SuppressLint("CommitPrefEdits") SharedPreferences.Editor preferences=getPreferences(MODE_PRIVATE).edit();
+            preferences.putString("num",num.getText().toString());
+            preferences.putString("password",password.getText().toString());
+        }
     }
 }
 

@@ -13,6 +13,8 @@ import com.shiyan.nets.GlobalSocket;
 
 import java.io.IOException;
 
+import static java.lang.Thread.sleep;
+
 public class MainService extends Service {
 
     boolean isFinish=false;
@@ -27,11 +29,19 @@ public class MainService extends Service {
     public void onCreate() {
         super.onCreate();
         new Thread(() -> {
-            String cmd;
+            String cmd = "";
+            char once_char[]=new char[200];
             NotificationManager manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             try {
                 while(!isFinish){
-                    cmd=GlobalSocket.br.readLine();
+                    while (true){
+                        if (GlobalSocket.br.read(once_char)!=-1){
+                            cmd+=String.valueOf(once_char);
+                        } else {
+                            sleep(300);
+                            break;
+                        }
+                    }
                     Log.e("收到消息",cmd);
                     String[] ss=cmd.split("/");
                     Notification notification=new NotificationCompat.Builder(MainService.this)
@@ -44,7 +54,7 @@ public class MainService extends Service {
                     manager.notify(1,notification);
                     sendBroadcast(new Intent().setAction("new_message").putExtra("new",cmd));
                 }
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }).start();

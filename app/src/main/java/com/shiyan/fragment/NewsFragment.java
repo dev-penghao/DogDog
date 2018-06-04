@@ -108,7 +108,7 @@ public class NewsFragment extends Fragment{
                     }
                 }
                 if (!isExist){
-                    exist_dialog.add(new_message.getObj());
+                    exist_dialog.add(0,new_message.getObj());
                     newsAdapter.notifyItemInserted(0);
                     newsAdapter.notifyItemRangeChanged(0,exist_dialog.size());
                 }

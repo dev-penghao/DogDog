@@ -35,7 +35,7 @@ public class Request {
 
     public String sendRequest(){
         try {
-            Socket socket=new Socket(GlobalSocket.SERVER_HOST0,38380);
+            Socket socket=new Socket(GlobalSocket.SERVER_HOST,38380);
             PrintStream ps=new PrintStream(socket.getOutputStream());
             BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
             Log.e("注意",request);

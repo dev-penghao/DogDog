@@ -13,7 +13,7 @@ import android.view.View;
 import com.shiyan.dogdog.R;
 
 
-class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
