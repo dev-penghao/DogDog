@@ -24,7 +24,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 
-public class LoginActivity extends AppCompatActivity {
+public class SignInActivity extends AppCompatActivity {
 
     Button sign_up,sign_in;
     EditText num,password;
@@ -36,10 +36,10 @@ public class LoginActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if ("OK".equals(msg.obj.toString())){
-                Intent intent=new Intent(LoginActivity.this, MainActivity.class);
+                Intent intent=new Intent(SignInActivity.this, MainActivity.class);
                 startActivity(intent);
             } else {
-                Toast.makeText(LoginActivity.this,"出错："+msg.obj.toString(),Toast.LENGTH_LONG).show();
+                Toast.makeText(SignInActivity.this,"出错："+msg.obj.toString(),Toast.LENGTH_LONG).show();
             }
         }
 
@@ -48,7 +48,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_sign_in);
 
         sign_up=findViewById(R.id.sign_up);
         sign_in=findViewById(R.id.sign_in);
@@ -56,9 +56,10 @@ public class LoginActivity extends AppCompatActivity {
         password=findViewById(R.id.user_password);
         checkBox=findViewById(R.id.login_checkbox);
 
-        SharedPreferences preferences=getPreferences(MODE_PRIVATE);
+        SharedPreferences preferences=getSharedPreferences("login",MODE_PRIVATE);
         num.setText(preferences.getString("num",""));
         password.setText(preferences.getString("password",""));
+        checkBox.setChecked(preferences.getBoolean("isChecked",false));
 
         sign_in.setOnClickListener(v -> new Thread(() -> {
             String result = "";
@@ -83,16 +84,25 @@ public class LoginActivity extends AppCompatActivity {
             Me.name=result;
             Me.num=num.getText().toString();
         }).start());
+
+        sign_up.setOnClickListener(v -> {
+            Intent intent=new Intent(SignInActivity.this,SignUpActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        @SuppressLint("CommitPrefEdits") SharedPreferences.Editor preferences=getSharedPreferences("login",MODE_PRIVATE).edit();
         if (checkBox.isChecked()){
-            @SuppressLint("CommitPrefEdits") SharedPreferences.Editor preferences=getPreferences(MODE_PRIVATE).edit();
             preferences.putString("num",num.getText().toString());
             preferences.putString("password",password.getText().toString());
+            preferences.putBoolean("isChecked",true);
+        } else {
+            preferences.putBoolean("isChecked",false);
         }
+        preferences.apply();
     }
 }
 

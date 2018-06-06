@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -66,16 +67,16 @@ public class TalkActivity extends AppCompatActivity{
 
         button.setOnClickListener(v -> {
             String message=editText.getText().toString();
+            if (message.length()>4000){
+                Snackbar.make(v,"消息过长",Snackbar.LENGTH_LONG).setAction("确定",v1 -> {
+
+                });
+                return;
+            }
             new Thread(() -> {
-                try {
-                    GlobalSocket.ps=new PrintStream(GlobalSocket.socket.getOutputStream());
                     GlobalSocket.ps.print(talkObj+"/"+message);
-                    GlobalSocket.ps.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }).start();
-            list.add(new NetMessage(1,editText.getText().toString(),talkObj));
+            list.add(new NetMessage(1,talkObj,message));
             myAdapter.notifyItemInserted(list.size()-1);
             recyclerView.scrollToPosition(list.size()-1);
             editText.setText("");
@@ -143,7 +144,7 @@ public class TalkActivity extends AppCompatActivity{
                 if (!ss[0].equals(talkObj)){
                     return;
                 }
-                NetMessage message=new NetMessage(0,ss[1],ss[0]);
+                NetMessage message=new NetMessage(0,ss[0],ss[1]);
                 list.add(message);
                 myAdapter.notifyItemInserted(list.size()-1);
                 recyclerView.scrollToPosition(list.size()-1);

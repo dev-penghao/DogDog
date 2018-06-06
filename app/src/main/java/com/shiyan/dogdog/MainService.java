@@ -13,8 +13,6 @@ import com.shiyan.nets.GlobalSocket;
 
 import java.io.IOException;
 
-import static java.lang.Thread.sleep;
-
 public class MainService extends Service {
 
     boolean isFinish=false;
@@ -29,20 +27,17 @@ public class MainService extends Service {
     public void onCreate() {
         super.onCreate();
         new Thread(() -> {
-            String cmd = "";
-            char once_char[]=new char[200];
+            String cmd;
+            char[] once_char = new char[4000];
             NotificationManager manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             try {
                 while(!isFinish){
-                    while (true){
-                        if (GlobalSocket.br.read(once_char)!=-1){
-                            cmd+=String.valueOf(once_char);
-                        } else {
-                            sleep(300);
-                            break;
-                        }
+                    GlobalSocket.br.read(once_char);
+                    cmd=valueOf(once_char);
+                    for (int i=0;i<once_char.length;i++){
+                        once_char[i]=0;
                     }
-                    Log.e("收到消息",cmd);
+                    Log.d("收到消息",cmd);
                     String[] ss=cmd.split("/");
                     Notification notification=new NotificationCompat.Builder(MainService.this)
                             .setContentTitle(ss[0])
@@ -54,27 +49,11 @@ public class MainService extends Service {
                     manager.notify(1,notification);
                     sendBroadcast(new Intent().setAction("new_message").putExtra("new",cmd));
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }).start();
     }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-//        Notification notification= null;
-//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-//            notification = new Notification.Builder(MainService.this.getApplicationContext())
-//                    .setContentTitle(getApplication().getPackageName()+"正在运行")
-//                    .setContentText("后台正在运行")
-//                    .setWhen(System.currentTimeMillis())
-//                    .setChannelId("2")
-//                    .build();
-//        }
-//        startForeground(110,notification);
-        return super.onStartCommand(intent, flags, startId);
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -86,6 +65,22 @@ public class MainService extends Service {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /*
+     *  Created by Penghao on 2018.06.06
+     */
+    // String.valueOf(char[] data)就是个坑！
+    private String valueOf(char[] chars){
+        StringBuilder sb=new StringBuilder();
+        for (int i=0;i<chars.length;i++){
+            if (chars[i]!=0){
+                sb.append(chars[i]);
+            } else {
+                break;
+            }
+        }
+        return sb.toString();
     }
 }
 

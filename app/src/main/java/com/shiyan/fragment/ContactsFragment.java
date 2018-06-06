@@ -174,7 +174,7 @@ public class ContactsFragment extends Fragment {
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("new_message".equals(intent.getAction())){
-                String[] ss=intent.getStringExtra("new").split("/");
+                String[] ss=intent.getStringExtra("new").split("/");// 0是发送者，1是消息内容
                 for (int i=0;i<friendList.size();i++){
                     if (ss[0].equals(friendList.get(i)[1])){
                         friendList.get(i)[2]=ss[1];
