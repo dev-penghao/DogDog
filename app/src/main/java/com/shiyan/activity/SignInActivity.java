@@ -52,9 +52,9 @@ public class SignInActivity extends AppCompatActivity {
 
         sign_up=findViewById(R.id.sign_up);
         sign_in=findViewById(R.id.sign_in);
-        num=findViewById(R.id.user_num);
-        password=findViewById(R.id.user_password);
-        checkBox=findViewById(R.id.login_checkbox);
+        num=findViewById(R.id.sign_in_user_num);
+        password=findViewById(R.id.sign_in_user_password);
+        checkBox=findViewById(R.id.sign_in_checkbox);
 
         SharedPreferences preferences=getSharedPreferences("login",MODE_PRIVATE);
         num.setText(preferences.getString("num",""));

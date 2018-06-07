@@ -45,6 +45,7 @@ public class MainService extends Service {
                             .setWhen(System.currentTimeMillis())
                             .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher_round))
                             .setSmallIcon(R.mipmap.ic_launcher_round)
+                            .setDefaults(NotificationCompat.DEFAULT_ALL)
                             .build();
                     manager.notify(1,notification);
                     sendBroadcast(new Intent().setAction("new_message").putExtra("new",cmd));

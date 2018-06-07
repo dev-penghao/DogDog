@@ -49,6 +49,9 @@ public class SignUpActivity extends AppCompatActivity {
         initView();
     }
 
+    /*
+     *  Created by Penghao on 2018.06.06
+     */
     private void initView(){
         name=findViewById(R.id.sign_up_name);
         num=findViewById(R.id.sign_up_num);
@@ -63,6 +66,9 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
+    /*
+     *  Created by Penghao on 2018.06.06
+     */
     private void analysis(String name,String num,String password,String password_again) {
         char[] temp=(name+num+password).toCharArray();
         for (int i=0;i<temp.length;i++){
@@ -71,7 +77,6 @@ public class SignUpActivity extends AppCompatActivity {
                 return;
             }
         }
-        Log.d("analysis",String.valueOf(temp));
         if (name.length()<21 && num.length()<11 && password.length()<17){
             if (!password.equals(password_again)){
                 Snackbar.make(from,"密码不一致！",Snackbar.LENGTH_LONG).show();
@@ -92,4 +97,3 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 }
-

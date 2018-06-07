@@ -68,9 +68,7 @@ public class TalkActivity extends AppCompatActivity{
         button.setOnClickListener(v -> {
             String message=editText.getText().toString();
             if (message.length()>4000){
-                Snackbar.make(v,"消息过长",Snackbar.LENGTH_LONG).setAction("确定",v1 -> {
-
-                });
+                Snackbar.make(v,"消息过长",Snackbar.LENGTH_LONG).setAction("确定",v1 -> {}).show();
                 return;
             }
             new Thread(() -> {
