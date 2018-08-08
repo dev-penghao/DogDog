@@ -12,11 +12,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.shiyan.activity.SearchActivity;
 import com.shiyan.fragment.ContactsFragment;
 import com.shiyan.fragment.NewsFragment;
 import com.shiyan.fragment.ZoneFrament;
+import com.shiyan.nets.Me;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     TabLayout tabLayout;
     String[] title={"消息","联系人","动态"};
     List<Fragment> fragmentList=new ArrayList<>();
+    TextView myName, myNum;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,6 +38,11 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
+
+        myName=findViewById(R.id.main_myname);
+        myNum=findViewById(R.id.main_mynum);
+        myName.setText(Me.name);
+        myNum.setText(Me.num);
 
         viewPager=findViewById(R.id.viewpager);
         tabLayout=findViewById(R.id.tabs);

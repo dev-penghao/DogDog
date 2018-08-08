@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,9 +24,9 @@ import java.util.List;
 public class NewsFragment extends Fragment{
 
     Context context;
-    NewsReceiver newsReceiver;
+    NewsReceiver newsReceiver;// 本页面的广播接收器
     NetMessage new_message;
-    List<String> exist_dialog=new ArrayList<>();
+    List<String> existed_dialog=new ArrayList<>();
 
     RecyclerView recyclerView;
     NewsAdapter newsAdapter;
@@ -88,29 +87,27 @@ public class NewsFragment extends Fragment{
 
         @Override
         public int getItemCount() {
-            Log.e("注意",exist_dialog.size()+"");
-            return exist_dialog.size();
+            return existed_dialog.size();
         }
     }
 
     class NewsReceiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
-            if ("new_message".equals(intent.getAction())){
+            if ("new_message".equals(intent.getAction())){// 收到一条消息
                 String[] ss=intent.getStringExtra("new").split("/");
-                new_message=new NetMessage(0,ss[1],ss[0]);
+                new_message=new NetMessage(0,ss[0],ss[1]);
                 boolean isExist=false;
-                for (int i=0;i<exist_dialog.size();i++){
-                    if (new_message.getObj().equals(exist_dialog.get(i))){
+                for (int i=0;i<existed_dialog.size();i++){
+                    if (new_message.getObj().equals(existed_dialog.get(i))){
                         newsAdapter.notifyItemChanged(i);
                         isExist=true;
                         break;
                     }
                 }
                 if (!isExist){
-                    exist_dialog.add(0,new_message.getObj());
+                    existed_dialog.add(0,new_message.getObj());
                     newsAdapter.notifyItemInserted(0);
-                    newsAdapter.notifyItemRangeChanged(0,exist_dialog.size());
                 }
             }
         }
