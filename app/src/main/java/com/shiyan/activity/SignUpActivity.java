@@ -6,14 +6,13 @@ import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.shiyan.dogdog.R;
-import com.shiyan.nets.Request;
+import com.shiyan.tools.Request;
 
 
 /*

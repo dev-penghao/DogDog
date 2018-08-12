@@ -9,9 +9,13 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.shiyan.nets.GlobalSocket;
+import com.shiyan.tools.GlobalSocket;
+import com.shiyan.tools.Me;
+import com.shiyan.tools.Message;
 
 import java.io.IOException;
+
+import static com.shiyan.tools.Me.msgNow;
 
 public class MainService extends Service {
 
@@ -27,32 +31,55 @@ public class MainService extends Service {
     public void onCreate() {
         super.onCreate();
         new Thread(() -> {
-            String cmd;
-            char[] once_char = new char[4000];
-            NotificationManager manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            try {
-                while(!isFinish){
-                    GlobalSocket.br.read(once_char);
-                    cmd=valueOf(once_char);
-                    for (int i=0;i<once_char.length;i++){
-                        once_char[i]=0;
-                    }
-                    Log.d("收到消息",cmd);
-                    String[] ss=cmd.split("/");
+
+            String msgByString;
+            while (!isFinish){
+                try {
+                    msgByString=GlobalSocket.mis.readString();
+                    msgNow=new Message(msgByString);
+                    Log.d("收到消息:",msgNow.toString());
+                    NotificationManager manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                     Notification notification=new NotificationCompat.Builder(MainService.this)
-                            .setContentTitle(ss[0])
-                            .setContentText(ss[1])
+                            .setContentTitle(msgNow.getFrom())
+                            .setContentText(msgNow.getTextContent())
                             .setWhen(System.currentTimeMillis())
                             .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher_round))
                             .setSmallIcon(R.mipmap.ic_launcher_round)
                             .setDefaults(NotificationCompat.DEFAULT_ALL)
                             .build();
                     manager.notify(1,notification);
-                    sendBroadcast(new Intent().setAction("new_message").putExtra("new",cmd));
+                    sendBroadcast(new Intent().setAction("new_message"));
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+
+//            String cmd;
+//            char[] once_char = new char[4000];
+//            NotificationManager manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+//            try {
+//                while(!isFinish){
+//                    GlobalSocket.br.read(once_char);
+//                    cmd=valueOf(once_char);
+//                    for (int i=0;i<once_char.length;i++){
+//                        once_char[i]=0;
+//                    }
+//                    Log.d("收到消息",cmd);
+//                    String[] ss=cmd.split("/");
+//                    Notification notification=new NotificationCompat.Builder(MainService.this)
+//                            .setContentTitle(ss[0])
+//                            .setContentText(ss[1])
+//                            .setWhen(System.currentTimeMillis())
+//                            .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.mipmap.ic_launcher_round))
+//                            .setSmallIcon(R.mipmap.ic_launcher_round)
+//                            .setDefaults(NotificationCompat.DEFAULT_ALL)
+//                            .build();
+//                    manager.notify(1,notification);
+//                    sendBroadcast(new Intent().setAction("new_message").putExtra("new",cmd));
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }).start();
     }
     @Override
@@ -61,7 +88,7 @@ public class MainService extends Service {
         isFinish=true;
         GlobalSocket.ps.close();
         try {
-            GlobalSocket.br.close();
+            GlobalSocket.mis.close();
             GlobalSocket.socket.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -14,9 +14,10 @@ import android.widget.Toast;
 
 import com.shiyan.dogdog.MainActivity;
 import com.shiyan.dogdog.R;
-import com.shiyan.nets.GlobalSocket;
-import com.shiyan.nets.Me;
-import com.shiyan.nets.Request;
+import com.shiyan.tools.GlobalSocket;
+import com.shiyan.tools.Me;
+import com.shiyan.tools.MyInputStream;
+import com.shiyan.tools.Request;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -66,10 +67,10 @@ public class SignInActivity extends AppCompatActivity {
             try {
                 GlobalSocket.socket=new Socket(GlobalSocket.SERVER_HOST,38380);
                 GlobalSocket.ps=new PrintStream(GlobalSocket.socket.getOutputStream());
-                GlobalSocket.br=new BufferedReader(new InputStreamReader(GlobalSocket.socket.getInputStream()));
+                GlobalSocket.mis=new MyInputStream(GlobalSocket.socket.getInputStream());
                 String request="sign_in/"+num.getText().toString()+"/"+password.getText().toString()+"/";
                 GlobalSocket.ps.println(request);
-                result = GlobalSocket.br.readLine();
+                result = GlobalSocket.mis.readLine();
             } catch (IOException e) {
                 e.printStackTrace();
             }

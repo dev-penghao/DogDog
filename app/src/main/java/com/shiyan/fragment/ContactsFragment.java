@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,8 +23,8 @@ import android.widget.TextView;
 
 import com.shiyan.activity.TalkActivity;
 import com.shiyan.dogdog.R;
-import com.shiyan.nets.Me;
-import com.shiyan.nets.Request;
+import com.shiyan.tools.Me;
+import com.shiyan.tools.Request;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,7 +41,6 @@ public class ContactsFragment extends Fragment {
     List<String[]> friendList=new ArrayList<>();// 数组会有3个元素，0是昵称，1是账号，2是消息
 
     ContactsAdapter contactsAdapter;
-    ContactsBroadcast contactsBroadcast;
     Context context;
 
     @SuppressLint("HandlerLeak")
@@ -66,10 +64,6 @@ public class ContactsFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context=getContext();
-        IntentFilter filter=new IntentFilter();
-        filter.addAction("new_message");
-        contactsBroadcast=new ContactsBroadcast();
-        context.registerReceiver(contactsBroadcast,filter);
     }
 
     @Nullable
@@ -125,7 +119,6 @@ public class ContactsFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        context.unregisterReceiver(contactsBroadcast);
     }
 
     class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHolder>{
@@ -166,22 +159,6 @@ public class ContactsFragment extends Fragment {
         @Override
         public int getItemCount() {
             return friendList.size();
-        }
-    }
-
-    class ContactsBroadcast extends BroadcastReceiver{
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if ("new_message".equals(intent.getAction())){
-                String[] ss=intent.getStringExtra("new").split("/");// 0是发送者，1是消息内容
-                for (int i=0;i<friendList.size();i++){
-                    if (ss[0].equals(friendList.get(i)[1])){
-                        friendList.get(i)[2]=ss[1];
-                        contactsAdapter.notifyItemChanged(i);
-                    }
-                }
-            }
         }
     }
 }

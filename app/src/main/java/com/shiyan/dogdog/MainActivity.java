@@ -18,7 +18,7 @@ import com.shiyan.activity.SearchActivity;
 import com.shiyan.fragment.ContactsFragment;
 import com.shiyan.fragment.NewsFragment;
 import com.shiyan.fragment.ZoneFrament;
-import com.shiyan.nets.Me;
+import com.shiyan.tools.Me;
 
 import java.util.ArrayList;
 import java.util.List;

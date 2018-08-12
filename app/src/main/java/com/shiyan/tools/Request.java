@@ -1,6 +1,4 @@
-package com.shiyan.nets;
-
-import android.util.Log;
+package com.shiyan.tools;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,9 +10,7 @@ public class Request {
 
     private String request;
 
-    public Request(){
-
-    }
+    public Request(){}
 
     public Request(String request){
         this.request=request;
@@ -38,10 +34,8 @@ public class Request {
             Socket socket=new Socket(GlobalSocket.SERVER_HOST,38380);
             PrintStream ps=new PrintStream(socket.getOutputStream());
             BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            Log.e("注意",request);
             ps.println(request);
             String result = br.readLine();
-            Log.e("注意",request+" : "+result);
             br.close();
             ps.close();
             socket.close();

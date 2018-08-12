@@ -16,16 +16,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.shiyan.dogdog.R;
-import com.shiyan.nets.NetMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.shiyan.tools.Me.msgNow;
 
 public class NewsFragment extends Fragment{
 
     Context context;
     NewsReceiver newsReceiver;// 本页面的广播接收器
-    NetMessage new_message;
     List<String> existed_dialog=new ArrayList<>();
 
     RecyclerView recyclerView;
@@ -81,8 +81,8 @@ public class NewsFragment extends Fragment{
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            holder.from.setText(new_message.getObj());
-            holder.content.setText(new_message.getMessage());
+            holder.from.setText(msgNow.getFrom());
+            holder.content.setText(msgNow.getTextContent());
         }
 
         @Override
@@ -95,18 +95,16 @@ public class NewsFragment extends Fragment{
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("new_message".equals(intent.getAction())){// 收到一条消息
-                String[] ss=intent.getStringExtra("new").split("/");
-                new_message=new NetMessage(0,ss[0],ss[1]);
                 boolean isExist=false;
                 for (int i=0;i<existed_dialog.size();i++){
-                    if (new_message.getObj().equals(existed_dialog.get(i))){
+                    if (msgNow.getFrom().equals(existed_dialog.get(i))){
                         newsAdapter.notifyItemChanged(i);
                         isExist=true;
                         break;
                     }
                 }
                 if (!isExist){
-                    existed_dialog.add(0,new_message.getObj());
+                    existed_dialog.add(0,msgNow.getFrom());
                     newsAdapter.notifyItemInserted(0);
                 }
             }
