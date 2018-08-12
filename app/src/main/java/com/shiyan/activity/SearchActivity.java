@@ -6,14 +6,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,8 +22,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.shiyan.dogdog.R;
-import com.shiyan.nets.Me;
-import com.shiyan.nets.Request;
+import com.shiyan.tools.Me;
+import com.shiyan.tools.Request;
 
 import org.json.JSONArray;
 import org.json.JSONException;

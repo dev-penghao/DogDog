@@ -21,13 +21,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.shiyan.dogdog.R;
-import com.shiyan.nets.GlobalSocket;
-import com.shiyan.nets.NetMessage;
+import com.shiyan.tools.GlobalSocket;
+import com.shiyan.tools.Me;
+import com.shiyan.tools.Message;
 
 import java.io.IOException;
-import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.shiyan.tools.Me.msgNow;
 
 public class TalkActivity extends AppCompatActivity{
 
@@ -35,10 +38,11 @@ public class TalkActivity extends AppCompatActivity{
     RecyclerView recyclerView;
     EditText editText;
     MyAdapter myAdapter;
-    List<NetMessage> list=new ArrayList<>();
+    List<Message> list=new ArrayList<>();
     TalkingReceiver talkingReceiver;
 
     String talkObj;// 当前对话的对象
+    final int MESSAGE_BYTE_MAX_LENGTH=1024;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,15 +70,27 @@ public class TalkActivity extends AppCompatActivity{
         recyclerView.setAdapter(myAdapter);
 
         button.setOnClickListener(v -> {
-            String message=editText.getText().toString();
-            if (message.length()>4000){
+            Message msg=new Message();
+            msg.setFrom(Me.num);
+            msg.setTo(talkObj);
+            msg.setMsgSize(0);
+            msg.setType(0);
+            msg.setWhen(System.currentTimeMillis());
+            msg.setTextContent(editText.getText().toString());
+            byte[] bytes=msg.toString().getBytes(Charset.forName("UTF-8"));
+            if (bytes.length>MESSAGE_BYTE_MAX_LENGTH){
                 Snackbar.make(v,"消息过长",Snackbar.LENGTH_LONG).setAction("确定",v1 -> {}).show();
                 return;
             }
             new Thread(() -> {
-                    GlobalSocket.ps.print(talkObj+"/"+message);
+                try {
+                    GlobalSocket.ps.write(bytes);
+                    GlobalSocket.ps.write((new byte[1])[0]=0);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }).start();
-            list.add(new NetMessage(1,talkObj,message));
+            list.add(msg);
             myAdapter.notifyItemInserted(list.size()-1);
             recyclerView.scrollToPosition(list.size()-1);
             editText.setText("");
@@ -112,15 +128,15 @@ public class TalkActivity extends AppCompatActivity{
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            NetMessage message=list.get(position);
-            if (message.getType()==0){// 如果是接收的消息则显示在左边
+            Message message=list.get(position);
+            if (message.getFrom().equals(talkObj)){// 如果是接收的消息则显示在左边
                 holder.leftLayout.setVisibility(View.VISIBLE);
                 holder.rightLayout.setVisibility(View.GONE);
-                holder.leftText.setText(message.getMessage());
-            }else if (message.getType()==1){// 如果是发送的消息则显示在右边
+                holder.leftText.setText(message.getTextContent());
+            }else if (message.getFrom().equals(Me.num)){// 如果是发送的消息则显示在右边
                 holder.rightLayout.setVisibility(View.VISIBLE);
                 holder.leftLayout.setVisibility(View.GONE);
-                holder.rightText.setText(message.getMessage());
+                holder.rightText.setText(message.getTextContent());
             }
 
         }
@@ -136,14 +152,12 @@ public class TalkActivity extends AppCompatActivity{
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("new_message".equals(intent.getAction())){
-                String msg=intent.getStringExtra("new");
-                String[] ss=msg.split("/");
+
                 // 如果消息不是当前对话对象发来的则不予理睬
-                if (!ss[0].equals(talkObj)){
+                if (!msgNow.getFrom().equals(talkObj)){
                     return;
                 }
-                NetMessage message=new NetMessage(0,ss[0],ss[1]);
-                list.add(message);
+                list.add(msgNow);
                 myAdapter.notifyItemInserted(list.size()-1);
                 recyclerView.scrollToPosition(list.size()-1);
             }
