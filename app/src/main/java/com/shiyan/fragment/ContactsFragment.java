@@ -1,11 +1,8 @@
 package com.shiyan.fragment;
 
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,8 +21,8 @@ import android.widget.TextView;
 
 import com.shiyan.activity.TalkActivity;
 import com.shiyan.dogdog.R;
-import com.shiyan.nets.Me;
-import com.shiyan.nets.Request;
+import com.shiyan.tools.Me;
+import com.shiyan.tools.Request;
 
 import org.json.JSONArray;
 import org.json.JSONException;
