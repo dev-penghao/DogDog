@@ -25,7 +25,10 @@ import com.shiyan.tools.GlobalSocket;
 import com.shiyan.tools.Me;
 import com.shiyan.tools.Message;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +72,8 @@ public class TalkActivity extends AppCompatActivity{
         myAdapter=new MyAdapter();
         recyclerView.setAdapter(myAdapter);
 
+//        loadMessage();
+
         button.setOnClickListener(v -> {
             Message msg=new Message();
             msg.setFrom(Me.num);
@@ -82,6 +87,8 @@ public class TalkActivity extends AppCompatActivity{
                 Snackbar.make(v,"消息过长",Snackbar.LENGTH_LONG).setAction("确定",v1 -> {}).show();
                 return;
             }
+            Me.msgNow=msg;
+            this.sendBroadcast(new Intent().setAction("new_message"));
             new Thread(() -> {
                 try {
                     GlobalSocket.ps.write(bytes);
@@ -102,6 +109,55 @@ public class TalkActivity extends AppCompatActivity{
         super.onDestroy();
         // 卸载广播接收器
         unregisterReceiver(talkingReceiver);
+    }
+
+    private void loadMessage(){
+        if (new File("/sdcard/DogDog/"+talkObj).isFile()){
+            for (int i=10;i>0;i--){
+                String msgByString=loadNLine("/sdcard/DogDog/"+talkObj,i);
+                System.out.println(msgByString);
+                if (msgByString==null) break;
+                list.add(new Message(msgByString));
+                myAdapter.notifyItemInserted(list.size()-1);
+            }
+            recyclerView.scrollToPosition(list.size()-1);
+        }
+    }
+
+    private String loadNLine(String path,int lineNum){
+        File inFile=new File(path);
+        if (!inFile.exists()) return null;// 如果文件不存在就不加载了
+        try {
+            RandomAccessFile raf=new RandomAccessFile(inFile,"r");
+            long fileLength=raf.length();
+            long pos=fileLength-1;
+            long pos0=pos;
+            int count=0;
+            while (pos>0){
+                raf.seek(pos);
+                if (raf.readByte()==0) {
+                    count+=1;
+                    pos--;
+                    if (count>=lineNum) {
+                        break;
+                    }
+                    pos0=pos;
+                } else {
+                    pos--;
+                }
+            }
+            if (pos==0) {
+                raf.seek(0);
+            } else {
+                raf.seek(pos+2);
+            }
+            byte[] bytes=new byte[(int) (pos0-pos-1)];
+            raf.read(bytes);
+            return new String(bytes,Charset.forName("UTF-8"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder>{

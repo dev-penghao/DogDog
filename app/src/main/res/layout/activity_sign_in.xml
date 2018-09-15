@@ -31,11 +31,24 @@
 
     </android.support.design.widget.TextInputLayout>
 
-    <CheckBox
-        android:id="@+id/sign_in_checkbox"
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="记住密码"/>
+        android:layout_height="wrap_content">
+
+        <CheckBox
+            android:id="@+id/sign_in_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="记住密码"/>
+
+        <Button
+            android:id="@+id/sign_in_connect_point"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置接入点"
+            style="?android:attr/buttonBarButtonStyle"/>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"

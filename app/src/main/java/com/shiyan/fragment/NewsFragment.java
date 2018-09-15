@@ -10,13 +10,27 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.shiyan.activity.TalkActivity;
 import com.shiyan.dogdog.R;
+import com.shiyan.tools.Me;
+import com.shiyan.tools.Message;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +45,8 @@ public class NewsFragment extends Fragment{
     RecyclerView recyclerView;
     NewsAdapter newsAdapter;
 
+    final String debug="NewsFragment";
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +56,7 @@ public class NewsFragment extends Fragment{
         newsReceiver=new NewsReceiver();
         filter.addAction("new_message");
         context.registerReceiver(newsReceiver,filter);
+        Log.d(debug,"onCreate()");
     }
 
     @Nullable
@@ -50,13 +67,98 @@ public class NewsFragment extends Fragment{
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         newsAdapter=new NewsAdapter();
         recyclerView.setAdapter(newsAdapter);
+
+//        JSONArray jsonArray=loadJSONArray(Me.dataPath+"news");
+//        if (jsonArray!=null){
+//            msgNow=new Message();
+//            for (int i=0;i<jsonArray.length();i++){
+//                try {
+//                    String from=jsonArray.getJSONObject(i).getString("from");
+//                    String content=jsonArray.getJSONObject(i).getString("content");
+//                    msgNow.setFrom(from);
+//                    msgNow.setTextContent(content);
+//                    newsAdapter.notifyItemInserted(0);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            msgNow=null;
+//        }
+        Log.d(debug,"onCreateView()");
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(debug,"onStart()");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(debug,"onPause()");
+//        JSONArray jsonArray=new JSONArray();
+//        for (int i=0;i<recyclerView.getChildCount();i++){
+//            JSONObject jsonObject=new JSONObject();
+//            try {
+//                jsonObject.put("from",((TextView)recyclerView.getChildAt(i).findViewById(R.id.news_item_from_textView)).getText());
+//                jsonObject.put("content",((TextView)recyclerView.getChildAt(i).findViewById(R.id.news_item_content_textView)).getText());
+//                jsonArray.put(jsonObject);
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        saveJSONArray(jsonArray, Me.dataPath+"news");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(debug,"onStop()");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(debug,"onDestroy");
         context.unregisterReceiver(newsReceiver);
+    }
+
+    private boolean saveJSONArray(JSONArray jsonArray,String path){
+        File outFile=new File(path);
+        if (!outFile.getParentFile().exists()){// 父文件夹若不存在
+            if (!outFile.getParentFile().mkdirs()){// 试图创建父文件夹，若失败
+                return false;
+            }
+        }
+        // 确保父文件夹存在后
+        try {
+            FileOutputStream fos=new FileOutputStream(path);
+            fos.write(jsonArray.toString().getBytes(Charset.forName("UTF-8")));
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private JSONArray loadJSONArray(String path){
+        File inFile=new File(path);
+        if (!inFile.isFile()){// 判断一个不存在的文件是否是文件会返回false
+            return null;
+        }
+        // 确保文件存在后
+        try {
+            FileInputStream fis=new FileInputStream(inFile);
+            byte[] bytes=new byte[fis.available()];// 一次性全部读完
+            fis.read(bytes);
+            return new JSONArray(new String(bytes,Charset.forName("UTF-8")));
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder>{
@@ -81,8 +183,17 @@ public class NewsFragment extends Fragment{
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            holder.from.setText(msgNow.getFrom());
+            if (msgNow.getFrom().equals(Me.num)){
+                holder.from.setText(msgNow.getTo());
+            } else {
+                holder.from.setText(msgNow.getFrom());
+            }
             holder.content.setText(msgNow.getTextContent());
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), TalkActivity.class);
+                intent.putExtra("num", existed_dialog.get(position));
+                startActivity(intent);
+            });
         }
 
         @Override
@@ -97,14 +208,18 @@ public class NewsFragment extends Fragment{
             if ("new_message".equals(intent.getAction())){// 收到一条消息
                 boolean isExist=false;
                 for (int i=0;i<existed_dialog.size();i++){
-                    if (msgNow.getFrom().equals(existed_dialog.get(i))){
+                    if ((msgNow.getFrom().equals(existed_dialog.get(i)))|(msgNow.getTo().equals(existed_dialog.get(i)))){
                         newsAdapter.notifyItemChanged(i);
                         isExist=true;
                         break;
                     }
                 }
                 if (!isExist){
-                    existed_dialog.add(0,msgNow.getFrom());
+                    if (msgNow.getFrom().equals(Me.num)){
+                        existed_dialog.add(0,msgNow.getTo());
+                    } else {
+                        existed_dialog.add(0,msgNow.getFrom());
+                    }
                     newsAdapter.notifyItemInserted(0);
                 }
             }

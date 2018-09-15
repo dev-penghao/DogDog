@@ -5,12 +5,6 @@
     android:id="@+id/view2"
     android:orientation="vertical">
 
-    <Button
-        android:id="@+id/view2_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="刷新" />
-
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/view2_swipeRefreshLayout"
         android:layout_width="match_parent"

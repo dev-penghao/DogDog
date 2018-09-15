@@ -4,16 +4,21 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.shiyan.tools.GlobalSocket;
-import com.shiyan.tools.Me;
 import com.shiyan.tools.Message;
+import com.shiyan.tools.MyDatabaseHelper;
 
+
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 
 import static com.shiyan.tools.Me.msgNow;
 
@@ -31,13 +36,14 @@ public class MainService extends Service {
     public void onCreate() {
         super.onCreate();
         new Thread(() -> {
-
+//            MyDatabaseHelper myDBHelper=null;
             String msgByString;
             while (!isFinish){
                 try {
                     msgByString=GlobalSocket.mis.readString();
                     msgNow=new Message(msgByString);
                     Log.d("收到消息:",msgNow.toString());
+
                     NotificationManager manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                     Notification notification=new NotificationCompat.Builder(MainService.this)
                             .setContentTitle(msgNow.getFrom())
@@ -49,6 +55,12 @@ public class MainService extends Service {
                             .build();
                     manager.notify(1,notification);
                     sendBroadcast(new Intent().setAction("new_message"));
+
+//                    myDBHelper=new MyDatabaseHelper(this,"",null,1,msgNow.getFrom());
+//                    SQLiteDatabase db=myDBHelper.getWritableDatabase();
+//                    String str="insert into "+msgNow.getFrom()+"(from,to,when,msgSize,type,textContent)values("+msgNow.getFrom()+","+msgNow.getTo()+","+msgNow.getWhen()+","+msgNow.getMsgSize()+","+msgNow.getType()+","+msgNow.getTextContent()+")";
+//                    db.execSQL(str);
+//                    saveMessage(msgNow);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -90,6 +102,23 @@ public class MainService extends Service {
         try {
             GlobalSocket.mis.close();
             GlobalSocket.socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveMessage(Message msg){
+        String path="/sdcard/DogDog/"+msg.getFrom();
+        File outFile=new File(path);
+        if (!outFile.isFile()){
+            outFile.delete();
+        }
+        try {
+            RandomAccessFile raf=new RandomAccessFile(outFile,"rw");
+            raf.seek(raf.length());// 追加内容
+            raf.write(msg.toString().getBytes(Charset.forName("UTF-8")));
+            raf.write((new byte[1])[0]=0);
+            raf.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
