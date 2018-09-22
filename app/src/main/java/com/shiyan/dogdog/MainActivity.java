@@ -7,6 +7,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -21,6 +22,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.shiyan.activity.AboutActivity;
 import com.shiyan.activity.SearchActivity;
 import com.shiyan.activity.SignInActivity;
 import com.shiyan.fragment.ContactsFragment;
@@ -54,26 +56,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = findViewById(R.id.toolbar_main);
-        setSupportActionBar(toolbar);
+        initView();
 
-        navigationView=findViewById(R.id.nav_view_main);
-        myName=navigationView.getHeaderView(0).findViewById(R.id.nav_myname);
-        myNum=navigationView.getHeaderView(0).findViewById(R.id.nav_mynum);
-        // 直接像下面这两行这样做是不行的
-//        myName=findViewById(R.id.nav_myname);
-//        myNum=findViewById(R.id.nav_mynum);
-
-        viewPager=findViewById(R.id.viewpager);
-        tabLayout=findViewById(R.id.tabs);
-        fragmentList.add(new NewsFragment());
-        fragmentList.add(new ContactsFragment());
-        fragmentList.add(new ZoneFrament());
-        viewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager()));
-        tabLayout.setupWithViewPager(viewPager);
-
-//        Intent intent=new Intent(MainActivity.this,MainService.class);
-//        startService(intent);
         SharedPreferences preferences=getSharedPreferences("main",MODE_PRIVATE);
         isLogined=preferences.getBoolean("isLogined",false);
         GlobalSocket.SERVER_HOST=preferences.getString("SERVER_HOST","192.168.1.106");// 我的电脑在我家的局域网里的IP
@@ -86,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     num=preferences.getString("num",null);
                     password=preferences.getString("password",null);
                     if (num==null||password==null){// 一旦出错，则放弃自动登录而跳到登录页面手动登录
-                        return;
+                        finish();
                     }
                     try {
                         GlobalSocket.socket=new Socket(GlobalSocket.SERVER_HOST,38380);
@@ -169,6 +153,42 @@ public class MainActivity extends AppCompatActivity {
                 break;
                 default :
         }
+    }
+
+    public void initView(){
+        Toolbar toolbar = findViewById(R.id.toolbar_main);
+        setSupportActionBar(toolbar);
+
+        navigationView=findViewById(R.id.nav_view_main);
+        navigationView.setCheckedItem(R.id.nav_item1);
+        myName=navigationView.getHeaderView(0).findViewById(R.id.nav_myname);
+        myNum=navigationView.getHeaderView(0).findViewById(R.id.nav_mynum);
+        // 直接像下面这两行这样做是不行的
+//        myName=findViewById(R.id.nav_myname);
+//        myNum=findViewById(R.id.nav_mynum);
+
+        viewPager=findViewById(R.id.viewpager);
+        tabLayout=findViewById(R.id.tabs);
+        fragmentList.add(new NewsFragment());
+        fragmentList.add(new ContactsFragment());
+        fragmentList.add(new ZoneFrament());
+        viewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager()));
+        tabLayout.setupWithViewPager(viewPager);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.nav_item1:
+                        Intent intent=new Intent(MainActivity.this, AboutActivity.class);
+                        startActivity(intent);
+                        break;
+
+                    default:
+                        break;
+                }
+                return true;
+            }
+        });
     }
 
     /**

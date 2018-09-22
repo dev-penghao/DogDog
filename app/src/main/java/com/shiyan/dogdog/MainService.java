@@ -3,7 +3,9 @@ package com.shiyan.dogdog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
 import android.os.IBinder;
@@ -36,7 +38,6 @@ public class MainService extends Service {
     public void onCreate() {
         super.onCreate();
         new Thread(() -> {
-//            MyDatabaseHelper myDBHelper=null;
             String msgByString;
             while (!isFinish){
                 try {
@@ -55,12 +56,21 @@ public class MainService extends Service {
                             .build();
                     manager.notify(1,notification);
                     sendBroadcast(new Intent().setAction("new_message"));
-
-//                    myDBHelper=new MyDatabaseHelper(this,"",null,1,msgNow.getFrom());
-//                    SQLiteDatabase db=myDBHelper.getWritableDatabase();
-//                    String str="insert into "+msgNow.getFrom()+"(from,to,when,msgSize,type,textContent)values("+msgNow.getFrom()+","+msgNow.getTo()+","+msgNow.getWhen()+","+msgNow.getMsgSize()+","+msgNow.getType()+","+msgNow.getTextContent()+")";
-//                    db.execSQL(str);
-//                    saveMessage(msgNow);
+                    MyDatabaseHelper myDBHelper=new MyDatabaseHelper(this,"MsgLibs.db",null,1,msgNow.getFrom());
+                    SQLiteDatabase db=myDBHelper.getWritableDatabase();
+                    ContentValues values=new ContentValues();
+                    values.put("msg_from",msgNow.getFrom());
+                    values.put("msg_to",msgNow.getTo());
+                    values.put("msg_when",msgNow.getWhen());
+                    values.put("msgSize",msgNow.getMsgSize());
+                    values.put("type",msgNow.getType());
+                    values.put("textContent",msgNow.getTextContent());
+                    try{
+                        db.insert(msgNow.getFrom(),null,values);
+                    } catch (SQLException e){
+                        e.printStackTrace();
+                    }
+                    db.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

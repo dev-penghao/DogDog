@@ -100,6 +100,10 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
                     Me.name=result;
                     Me.num=num.getText().toString();
                     Me.dataPath="/sdcard/DogDog/"+Me.num;
+
+                    @SuppressLint("CommitPrefEdits") SharedPreferences.Editor preferences=getSharedPreferences("main",MODE_PRIVATE).edit();
+                    preferences.putBoolean("isLogined",true);
+                    preferences.apply();
                 }).start();
                 break;
             case R.id.sign_up:
@@ -135,7 +139,6 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
         } else {
             preferences.putBoolean("isChecked",false);
         }
-        preferences.putBoolean("isLogined",true);
         preferences.apply();
     }
 }
