@@ -101,9 +101,11 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
                     Me.num=num.getText().toString();
                     Me.dataPath="/sdcard/DogDog/"+Me.num;
 
-                    @SuppressLint("CommitPrefEdits") SharedPreferences.Editor preferences=getSharedPreferences("main",MODE_PRIVATE).edit();
-                    preferences.putBoolean("isLogined",true);
-                    preferences.apply();
+                    if (checkBox.isChecked()){
+                        @SuppressLint("CommitPrefEdits") SharedPreferences.Editor preferences=getSharedPreferences("main",MODE_PRIVATE).edit();
+                        preferences.putBoolean("isLogined",true);
+                        preferences.apply();
+                    }
                 }).start();
                 break;
             case R.id.sign_up:

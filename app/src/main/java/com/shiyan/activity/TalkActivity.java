@@ -1,13 +1,19 @@
 package com.shiyan.activity;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -24,6 +30,7 @@ import com.shiyan.dogdog.R;
 import com.shiyan.tools.GlobalSocket;
 import com.shiyan.tools.Me;
 import com.shiyan.tools.Message;
+import com.shiyan.tools.MyDatabaseHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,11 +41,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.shiyan.tools.Me.msgNow;
+import static com.shiyan.tools.Me.num;
 
 public class TalkActivity extends AppCompatActivity{
 
     Button button;
     RecyclerView recyclerView;
+    SwipeRefreshLayout swipeRefresh;
     EditText editText;
     MyAdapter myAdapter;
     List<Message> list=new ArrayList<>();
@@ -47,6 +56,7 @@ public class TalkActivity extends AppCompatActivity{
     String talkObj;// 当前对话的对象
     final int MESSAGE_BYTE_MAX_LENGTH=1024;
 
+    @SuppressLint("Recycle")
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,15 +76,15 @@ public class TalkActivity extends AppCompatActivity{
         button=findViewById(R.id.talk_send_button);
         recyclerView=findViewById(R.id.talk_recyclerview);
         editText=findViewById(R.id.talk_editText);
+        swipeRefresh=findViewById(R.id.talk_swipeRefresh);
 
         RecyclerView.LayoutManager layoutManager=new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         myAdapter=new MyAdapter();
         recyclerView.setAdapter(myAdapter);
 
-//        loadMessage();
-
         button.setOnClickListener(v -> {
+            // 创建消息
             Message msg=new Message();
             msg.setFrom(Me.num);
             msg.setTo(talkObj);
@@ -83,12 +93,12 @@ public class TalkActivity extends AppCompatActivity{
             msg.setWhen(System.currentTimeMillis());
             msg.setTextContent(editText.getText().toString());
             byte[] bytes=msg.toString().getBytes(Charset.forName("UTF-8"));
+            // 消息过长则不予发送
             if (bytes.length>MESSAGE_BYTE_MAX_LENGTH){
                 Snackbar.make(v,"消息过长",Snackbar.LENGTH_LONG).setAction("确定",v1 -> {}).show();
                 return;
             }
-            Me.msgNow=msg;
-            this.sendBroadcast(new Intent().setAction("new_message"));
+            // 开始发送消息
             new Thread(() -> {
                 try {
                     GlobalSocket.ps.write(bytes);
@@ -97,11 +107,86 @@ public class TalkActivity extends AppCompatActivity{
                     e.printStackTrace();
                 }
             }).start();
+            // 更新本界面
             list.add(msg);
             myAdapter.notifyItemInserted(list.size()-1);
             recyclerView.scrollToPosition(list.size()-1);
             editText.setText("");
+            // 更新NewsFragment界面
+            Me.msgNow=msg;
+            this.sendBroadcast(new Intent().setAction("new_message"));
+            // 将本条消息存入数据库中
+            MyDatabaseHelper myDBHelper=new MyDatabaseHelper(this,"MsgLibs.db",null,1);
+            SQLiteDatabase db=myDBHelper.getWritableDatabase();
+            ContentValues values=new ContentValues();
+            values.put("msg_from",msgNow.getFrom());
+            values.put("msg_to",msgNow.getTo());
+            values.put("msg_when",msgNow.getWhen());
+            values.put("msgSize",msgNow.getMsgSize());
+            values.put("type",msgNow.getType());
+            values.put("textContent",msgNow.getTextContent());
+            try{
+                db.insert(msgNow.getTo(),null,values);
+            } catch (SQLException e){
+                e.printStackTrace();
+            }
+            db.close();
         });
+
+        swipeRefresh.setOnRefreshListener(() -> {
+            MyDatabaseHelper sqlHelper=new MyDatabaseHelper(TalkActivity.this,"MsgLibs.db",null,1);
+            SQLiteDatabase db=sqlHelper.getReadableDatabase();
+            Cursor cursor=db.query(talkObj,null,"msg_when="+list.get(0).getWhen(),null,null,null,null);
+            if (cursor.moveToFirst()){
+                String when=String.valueOf(cursor.getLong(cursor.getColumnIndex("msg_when")));
+                cursor=db.query(talkObj, null,"msg_when<" + when,null,null,null,null,"10");
+                if (cursor.moveToFirst()){
+                    do {
+                        Message message=new Message();
+                        message.setFrom(cursor.getString(cursor.getColumnIndex("msg_from")));
+                        message.setTo(cursor.getString(cursor.getColumnIndex("msg_to")));
+                        message.setWhen(cursor.getLong(cursor.getColumnIndex("msg_when")));
+                        message.setMsgSize(cursor.getLong(cursor.getColumnIndex("msgSize")));
+                        message.setType(cursor.getInt(cursor.getColumnIndex("type")));
+                        message.setTextContent(cursor.getString(cursor.getColumnIndex("textContent")));
+                        list.add(0,message);
+                    }while (cursor.moveToNext());
+                    myAdapter.notifyItemInserted(0);
+                }
+            } else {
+
+            }
+            cursor.close();
+            swipeRefresh.setRefreshing(false);
+        });
+
+        //SELECT * FROM table_name order by user_id（字段） DESC limit 10;
+        MyDatabaseHelper sqlHelper=new MyDatabaseHelper(this,"MsgLibs.db",null,1,talkObj);
+        SQLiteDatabase db=sqlHelper.getReadableDatabase();
+        Cursor cursor=db.query(talkObj,null,null,null,null,null,"id desc","10");
+        if(cursor.moveToLast()){
+            do {
+                Message message=new Message();
+                message.setFrom(cursor.getString(cursor.getColumnIndex("msg_from")));
+                message.setTo(cursor.getString(cursor.getColumnIndex("msg_to")));
+                message.setWhen(cursor.getLong(cursor.getColumnIndex("msg_when")));
+                message.setMsgSize(cursor.getLong(cursor.getColumnIndex("msgSize")));
+                message.setType(cursor.getInt(cursor.getColumnIndex("type")));
+                message.setTextContent(cursor.getString(cursor.getColumnIndex("textContent")));
+                list.add(message);
+//                message.setFrom();
+//                message.setTo();
+//                message.setWhen();
+//                message.setMsgSize();
+//                message.setType();
+//                message.setTextContent();
+            }while (cursor.moveToPrevious());
+        }
+        cursor.close();
+        for (int i=0;i<list.size();i++){
+            myAdapter.notifyItemInserted(list.size()-1);
+        }
+        recyclerView.scrollToPosition(list.size()-1);
     }
 
     @Override
@@ -109,55 +194,6 @@ public class TalkActivity extends AppCompatActivity{
         super.onDestroy();
         // 卸载广播接收器
         unregisterReceiver(talkingReceiver);
-    }
-
-    private void loadMessage(){
-        if (new File("/sdcard/DogDog/"+talkObj).isFile()){
-            for (int i=10;i>0;i--){
-                String msgByString=loadNLine("/sdcard/DogDog/"+talkObj,i);
-                System.out.println(msgByString);
-                if (msgByString==null) break;
-                list.add(new Message(msgByString));
-                myAdapter.notifyItemInserted(list.size()-1);
-            }
-            recyclerView.scrollToPosition(list.size()-1);
-        }
-    }
-
-    private String loadNLine(String path,int lineNum){
-        File inFile=new File(path);
-        if (!inFile.exists()) return null;// 如果文件不存在就不加载了
-        try {
-            RandomAccessFile raf=new RandomAccessFile(inFile,"r");
-            long fileLength=raf.length();
-            long pos=fileLength-1;
-            long pos0=pos;
-            int count=0;
-            while (pos>0){
-                raf.seek(pos);
-                if (raf.readByte()==0) {
-                    count+=1;
-                    pos--;
-                    if (count>=lineNum) {
-                        break;
-                    }
-                    pos0=pos;
-                } else {
-                    pos--;
-                }
-            }
-            if (pos==0) {
-                raf.seek(0);
-            } else {
-                raf.seek(pos+2);
-            }
-            byte[] bytes=new byte[(int) (pos0-pos-1)];
-            raf.read(bytes);
-            return new String(bytes,Charset.forName("UTF-8"));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder>{
