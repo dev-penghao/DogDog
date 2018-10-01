@@ -1,6 +1,7 @@
 package com.shiyan.dogdog;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ContentValues;
@@ -46,7 +47,20 @@ public class MainService extends Service {
                     Log.d("收到消息:",msgNow.toString());
 
                     NotificationManager manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                    Notification notification=new NotificationCompat.Builder(MainService.this)
+                    final String CHANNEL_ID = "channel_id_1";
+                    final String CHANNEL_NAME = "channel_name_1";
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        //只在Android O之上需要渠道
+                        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID,
+                                CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+                        //如果这里用IMPORTANCE_NOENE就需要在系统的设置里面开启渠道，
+                        //通知才能正常弹出
+                        if (manager != null) {
+                            manager.createNotificationChannel(notificationChannel);
+                        }
+                    }
+
+                    Notification notification=new NotificationCompat.Builder(MainService.this,CHANNEL_ID)
                             .setContentTitle(msgNow.getFrom())
                             .setContentText(msgNow.getTextContent())
                             .setWhen(System.currentTimeMillis())
@@ -54,7 +68,9 @@ public class MainService extends Service {
                             .setSmallIcon(R.mipmap.ic_launcher_round)
                             .setDefaults(NotificationCompat.DEFAULT_ALL)
                             .build();
-                    manager.notify(1,notification);
+                    if (manager != null) {
+                        manager.notify(1,notification);
+                    }
                     sendBroadcast(new Intent().setAction("new_message"));
                     MyDatabaseHelper myDBHelper=new MyDatabaseHelper(this,"MsgLibs.db",null,1,msgNow.getFrom());
                     SQLiteDatabase db=myDBHelper.getWritableDatabase();

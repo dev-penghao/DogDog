@@ -136,25 +136,19 @@ public class TalkActivity extends AppCompatActivity{
         swipeRefresh.setOnRefreshListener(() -> {
             MyDatabaseHelper sqlHelper=new MyDatabaseHelper(TalkActivity.this,"MsgLibs.db",null,1);
             SQLiteDatabase db=sqlHelper.getReadableDatabase();
-            Cursor cursor=db.query(talkObj,null,"msg_when="+list.get(0).getWhen(),null,null,null,null);
+            Cursor cursor=db.query(talkObj,null,null,null,null,null,"id desc",list.size()+",5");
             if (cursor.moveToFirst()){
-                String when=String.valueOf(cursor.getLong(cursor.getColumnIndex("msg_when")));
-                cursor=db.query(talkObj, null,"msg_when<" + when,null,null,null,null,"10");
-                if (cursor.moveToFirst()){
-                    do {
-                        Message message=new Message();
-                        message.setFrom(cursor.getString(cursor.getColumnIndex("msg_from")));
-                        message.setTo(cursor.getString(cursor.getColumnIndex("msg_to")));
-                        message.setWhen(cursor.getLong(cursor.getColumnIndex("msg_when")));
-                        message.setMsgSize(cursor.getLong(cursor.getColumnIndex("msgSize")));
-                        message.setType(cursor.getInt(cursor.getColumnIndex("type")));
-                        message.setTextContent(cursor.getString(cursor.getColumnIndex("textContent")));
-                        list.add(0,message);
-                    }while (cursor.moveToNext());
+                do {
+                    Message message=new Message();
+                    message.setFrom(cursor.getString(cursor.getColumnIndex("msg_from")));
+                    message.setTo(cursor.getString(cursor.getColumnIndex("msg_to")));
+                    message.setWhen(cursor.getLong(cursor.getColumnIndex("msg_when")));
+                    message.setMsgSize(cursor.getLong(cursor.getColumnIndex("msgSize")));
+                    message.setType(cursor.getInt(cursor.getColumnIndex("type")));
+                    message.setTextContent(cursor.getString(cursor.getColumnIndex("textContent")));
+                    list.add(0,message);
                     myAdapter.notifyItemInserted(0);
-                }
-            } else {
-
+                }while (cursor.moveToNext());
             }
             cursor.close();
             swipeRefresh.setRefreshing(false);
