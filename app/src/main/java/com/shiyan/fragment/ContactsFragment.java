@@ -163,7 +163,10 @@ public class ContactsFragment extends Fragment {
             }
             holder.userName.setText(name);
             holder.isOnline.setText(isOnline?"[在线]":"[离线]");
+            Log.d("NOTE:","The position in methed is:"+position);
+
             holder.itemView.setOnClickListener(v -> {
+                Log.d("NOTE:","The position in ClickListener is:"+position);
                 Intent intent = new Intent(getActivity(), TalkActivity.class);
                 try {
                     intent.putExtra("num", friendList.get(position).getString("num"));

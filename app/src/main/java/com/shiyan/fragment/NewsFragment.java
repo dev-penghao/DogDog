@@ -28,7 +28,7 @@ import im.penghao.sdk.Message;
 public class NewsFragment extends Fragment{
 
     Context context;
-    List<String> existed_dialog=new ArrayList<>();
+    List<String[]> existed_dialog=new ArrayList<>();
 
     RecyclerView recyclerView;
     NewsAdapter newsAdapter;
@@ -45,19 +45,24 @@ public class NewsFragment extends Fragment{
                 Message message= (Message) msg.obj;
                 boolean isExist=false;
                 for (int i=0;i<existed_dialog.size();i++){
-                    if ((message.getFrom().equals(existed_dialog.get(i)))|(message.getTo().equals(existed_dialog.get(i)))){
-                        newsAdapter.notifyItemChanged(i);
+                    if ((message.getFrom().equals(existed_dialog.get(i)[0]))|(message.getTo().equals(existed_dialog.get(i)[0]))){
+                        existed_dialog.set(i,new String[]{message.getFrom(),message.getContent()});
+//                        newsAdapter.notifyItemChanged(i);
                         isExist=true;
                         break;
                     }
                 }
                 if (!isExist){
                     if (message.getFrom().equals(IMClient.ME)){
-                        existed_dialog.add(0,message.getTo());
+                        existed_dialog.add(0,new String[]{message.getTo(),message.getContent()});
                     } else {
-                        existed_dialog.add(0,message.getFrom());
+                        existed_dialog.add(0,new String[]{message.getFrom(),message.getContent()});
                     }
-                    newsAdapter.notifyItemInserted(0);
+
+//                    newsAdapter.notifyItemChanged(0);
+                }
+                for (int i=0;i<existed_dialog.size();i++){
+                    newsAdapter.notifyItemChanged(i);
                 }
             }
 
@@ -137,15 +142,14 @@ public class NewsFragment extends Fragment{
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            if (mMsgNow.getFrom().equals(IMClient.ME)){
-                holder.from.setText(mMsgNow.getTo());
-            } else {
-                holder.from.setText(mMsgNow.getFrom());
-            }
-            holder.content.setText(mMsgNow.getContent());
+            holder.from.setText(existed_dialog.get(position)[0]);
+            holder.content.setText(existed_dialog.get(position)[1]);
+            Log.d("NOTE:","The position in methed is:"+position);
             holder.itemView.setOnClickListener(v -> {
+                Log.d("NOTE:","The position in ClickListener is:"+position);
+                Log.d("NOTE:","The size of the list is:"+existed_dialog.size());
                 Intent intent = new Intent(getActivity(), TalkActivity.class);
-                intent.putExtra("num", existed_dialog.get(position));
+                intent.putExtra("num", existed_dialog.get(position)[0]);
                 startActivity(intent);
             });
         }
