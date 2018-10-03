@@ -20,20 +20,15 @@ import android.widget.TextView;
 
 import com.shiyan.activity.TalkActivity;
 import com.shiyan.dogdog.R;
-import com.shiyan.tools.Me;
-import com.shiyan.tools.Request;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+
+import im.penghao.sdk.IMClient;
 
 public class ContactsFragment extends Fragment {
 
@@ -81,7 +76,7 @@ public class ContactsFragment extends Fragment {
         refreshLayout.setOnRefreshListener(this::flushFriendList);
 
 //        recoverFriendList();
-        flushFriendList();
+//        flushFriendList();
         Log.d(debug,"onCreateView()");
         return view;
     }
@@ -111,53 +106,13 @@ public class ContactsFragment extends Fragment {
         Log.d(debug,"onDestroy");
     }
 
-    // 保存列表到本地
-    private void saveFriendList(){
-        File dogdog=new File(Me.dataPath);
-        if ((!dogdog.isDirectory())||!dogdog.exists()){// 名为DogDog的文件不是文件夹或者不存在
-            if (!dogdog.mkdirs()){// 试图创建，如果不成功就不管了
-                return;
-            }
-        }
-        // 到这里DogDog文件夹已经确保存在了
-        File firendList=new File(Me.dataPath+"friendList");
-        try {
-            FileOutputStream fos=new FileOutputStream(firendList);
-            JSONArray jsonArray=new JSONArray(friendList);
-            fos.write(jsonArray.toString().getBytes(Charset.forName("UTF-8")));
-            fos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void recoverFriendList(){
-        File friendList=new File(Me.dataPath+"friendList");
-        if (!friendList.exists()){
-            flushFriendList();// 如果文件不存在则通过网络获取
-            return;
-        }
-        try {
-            FileInputStream fis=new FileInputStream(friendList);
-            byte[] bytes=new byte[fis.available()];// 一次性全部读完
-            fis.read(bytes);
-            JSONArray jsonArray=new JSONArray(new String(bytes,Charset.forName("UTF-8")));
-            for (int i=0;i<jsonArray.length();i++){
-                this.friendList.add(jsonArray.getJSONObject(i));
-            }
-            fis.close();
-            handler.sendEmptyMessage(0);
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
     public synchronized void flushFriendList() {
         new Thread(() -> {
-            Request request = new Request();
-            request.putType("get_friend_list");
-            request.putContent(Me.num);
-            String result = request.sendRequest();
+//            Request request = new Request();
+//            request.putType("get_friend_list");
+//            request.putContent(Me.num);
+//            String result = request.sendRequest();
+            String result=IMClient.service.getFriendList(IMClient.ME);
             try {
                 friendList.clear();
                 JSONArray jsonArray = new JSONArray(result);

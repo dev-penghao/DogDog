@@ -22,8 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.shiyan.dogdog.R;
-import com.shiyan.tools.Me;
-import com.shiyan.tools.Request;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,6 +29,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import im.penghao.sdk.IMClient;
 
 
 public class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
@@ -62,7 +63,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
         setContentView(R.layout.activity_search);
         Toolbar toolbar=findViewById(R.id.search_toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         recyclerView=findViewById(R.id.search_recyclerView);
         RecyclerView.LayoutManager layoutManager=new LinearLayoutManager(this);
@@ -94,18 +95,14 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
 
     @Override
     public boolean onQueryTextChange(String newText) {
-
         return true;
     }
 
     @SuppressLint("ResourceType")
     @Override
     public boolean onQueryTextSubmit(String query) {
-        Request request=new Request();
-        request.putType("search_user");
-        request.putContent(query);
         new Thread(() -> {
-            String result=request.sendRequest();
+            String result=IMClient.service.searchUser(query);
             try {
                 searchResult.clear();
                 JSONArray jsonArray= new JSONArray(result);
@@ -150,23 +147,19 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            holder.button.setOnClickListener(v -> {
-                Request request=new Request();
-                request.putType("add_friend");
-                request.putContent(Me.num);
+            holder.button.setOnClickListener(v -> new Thread(() -> {
+                String result;
                 try {
-                    request.putContent(searchResult.get(position).getString("num"));
+                    result = IMClient.service.beFriend(IMClient.ME,searchResult.get(position).getString("num"));
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    result="Be friend failed.We are sorry that there were something got wrong";
                 }
-                new Thread(() -> {
-                    String result=request.sendRequest();
-                    Message msg=new Message();
-                    msg.obj=result;
-                    msg.what=1;
-                    handler.sendMessage(msg);
-                }).start();
-            });
+                Message msg=new Message();
+                msg.obj=result;
+                msg.what=1;
+                handler.sendMessage(msg);
+            }).start());
         }
 
         @Override

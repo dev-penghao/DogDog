@@ -12,7 +12,8 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.shiyan.dogdog.R;
-import com.shiyan.tools.Request;
+
+import im.penghao.sdk.IMClient;
 
 
 /*
@@ -70,9 +71,10 @@ public class SignUpActivity extends AppCompatActivity {
      */
     private void analysis(String name,String num,String password,String password_again) {
         char[] temp=(name+num+password).toCharArray();
-        for (int i=0;i<temp.length;i++){
-            if (temp[i]=='/'){
-                Snackbar.make(from,"任何中都不允许出现字符“/”",Snackbar.LENGTH_LONG).setAction("确定",v -> {}).show();
+        for (char aTemp : temp) {
+            if (aTemp == '/') {
+                Snackbar.make(from, "任何中都不允许出现字符“/”", Snackbar.LENGTH_LONG).setAction("确定", v -> {
+                }).show();
                 return;
             }
         }
@@ -81,16 +83,9 @@ public class SignUpActivity extends AppCompatActivity {
                 Snackbar.make(from,"密码不一致！",Snackbar.LENGTH_LONG).show();
                 return;
             }
-
-            Request request=new Request();
-            request.putType("sign_up");
-            request.putContent(name);
-            request.putContent(num);
-            request.putContent(password);
             new Thread(() -> {
-                String result=request.sendRequest();
                 Message msg=new Message();
-                msg.obj=result;
+                msg.obj=IMClient.service.register(name, num, password);;
                 handler.sendMessage(msg);
             }).start();
         }

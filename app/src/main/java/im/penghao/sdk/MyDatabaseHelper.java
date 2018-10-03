@@ -1,4 +1,4 @@
-package com.shiyan.tools;
+package im.penghao.sdk;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -12,24 +12,22 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         super(context, name, factory, version);
         createTable="create table if not exists android_metadata"+" ("
                 +"id integer primary key autoincrement, "
+                +"type integer, "
+                +"msg_when long, "
                 +"msg_from text, "// from,to,when这三个都是SQL的保留字，所以这里才加前缀
                 +"msg_to text, "
-                +"msg_when long, "
-                +"msgSize long, "
-                +"type integer, "
-                +"textContent text)";
+                +"content text)";
     }
 
     public MyDatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, String tableName) {
         super(context, name, factory, version);
         createTable="create table if not exists "+tableName+" ("
-            +"id integer primary key autoincrement, "
-            +"msg_from text, "// from,to,when这三个都是SQL的保留字，所以这里才加前缀
-            +"msg_to text, "
-            +"msg_when long, "
-            +"msgSize long, "
-            +"type integer, "
-            +"textContent text)";
+                +"id integer primary key autoincrement, "
+                +"type integer, "
+                +"msg_when long, "
+                +"msg_from text, "// from,to,when这三个都是SQL的保留字，所以这里才加前缀
+                +"msg_to text, "
+                +"content text)";
     }
 
     @Override

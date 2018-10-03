@@ -1,4 +1,4 @@
-package com.shiyan.tools;
+package im.penghao.sdk;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class Request {
 
     public String sendRequest(){
         try {
-            Socket socket=new Socket(GlobalSocket.SERVER_HOST,38380);
+            Socket socket=new Socket(IMClient.SERVER_HOST,38380);
             PrintStream ps=new PrintStream(socket.getOutputStream());
             BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));
             ps.println(request);
@@ -42,7 +42,7 @@ public class Request {
             return result;
         } catch (IOException e) {
             e.printStackTrace();
-            return "IOException"+e.toString();
+            return "IOException:\n"+e.toString();
         }
     }
 }
